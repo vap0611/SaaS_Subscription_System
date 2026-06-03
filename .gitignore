@@ -1,0 +1,28 @@
+# Virtual Environment
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# SQLite temporary files
+*.db-journal
+*.db-wal
+*.db-shm
+
+# VS Code settings
+.vscode/
+
+# Linux temporary files
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
