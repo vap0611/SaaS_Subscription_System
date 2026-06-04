@@ -23,6 +23,13 @@ __pycache__/
 *.swo
 *~
 
+venv/
+__pycache__/
+*.pyc
+*.db-journal
+.vscode/
+.ipynb_checkpoints/
+
 # OS files
 .DS_Store
 Thumbs.db
