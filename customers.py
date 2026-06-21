@@ -1,86 +1,92 @@
 from database.database import connection
-import re 
+import re
 
-def add_customer():
-    conn = connection()
-    cursor = conn.cursor()
-    name = input("Enter customer name")
-    email = input("Enter E-mail")  
-    pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
-    if not re.match(pattern, email):
-        print("Invalid Email Format!")
-        return
-    phone = input("Enter phone number")
-    if not phone.isdigit() or len(phone) != 10:
-            print("Invalid phone number ") 
-            return 
-    company = input("Enter name of the company")
-    cursor.execute("INSERT INTO customers (name, email, phone, company, registration_date) VALUES (?, ?, ?, ?, DATE('now'))",(name, email, phone, company))
-    conn.commit()
-    conn.close()
+def add_customer(name, email, phone, company):
+    try:
+        # Validations
+        email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+        if not re.match(email_pattern, email):
+            return False, "Invalid Email Format!"
+            
+        if not str(phone).isdigit() or len(str(phone)) != 10:
+            return False, "Invalid phone number! It must be exactly 10 digits."
 
-
+        conn = connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "INSERT INTO customers (name, email, phone, company, registration_date) VALUES (?, ?, ?, ?, DATE('now'))",
+            (name, email, phone, company)
+        )
+        
+        conn.commit()
+        conn.close()
+        return True, "Customer added successfully!!"
+        
+    except Exception as e:
+        return False, f"Error adding customer: {e}"
 
 
 def view_customers():
-    conn = connection()
-    cursor = conn.cursor()
+    try:
+        conn = connection()
+        cursor = conn.cursor()
 
-    cursor.execute("Select * from customers")
-    customers=cursor.fetchall()
-    for customer in customers:
-        print(customer)
-    conn.commit()
-    conn.close()
-    print("That's it ")
+        cursor.execute("SELECT * FROM customers")
+        customers = cursor.fetchall()
+        
+        conn.close()
+        return True, customers
+    except Exception as e:
+        return False, f"Error fetching customers: {e}"
 
-def update_customers():
-    conn = connection()
-    cursor = conn.cursor()
-    id = int(input("Enter plan_id to be updated"))
-    #print("What do you want to update ??")
-    ch = int(input("Enter your choice: \n 1. Name\n"
-                   "2. Email\n"
-                   "3. Phone\n"
-                   "4. Company\n"))
-    if ch == 1:
-        new_name = input("Enter new name")
-        cursor.execute("Update customers set name = ? where customer_id = ?",(new_name, id))
-    if ch == 2:
-        new_email = int(input("Enter new email"))
-        pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
-        if not re.match(pattern, new_email):
-            print("Invalid Email Format! cannot be updates")
-            return
+
+def update_customer(customer_id, choice, new_value):
+    try:
+        conn = connection()
+        cursor = conn.cursor()
+        
+        if choice == 1:
+            cursor.execute("UPDATE customers SET name = ? WHERE customer_id = ?", (new_value, customer_id))
+            
+        elif choice == 2:
+            email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+            if not re.match(email_pattern, new_value):
+                conn.close()
+                return False, "Invalid Email Format! Cannot be updated."
+            cursor.execute("UPDATE customers SET email = ? WHERE customer_id = ?", (new_value, customer_id))
+            
+        elif choice == 3:
+            if not str(new_value).isdigit() or len(str(new_value)) != 10:
+                conn.close()
+                return False, "Invalid phone number! Must be 10 digits."
+            cursor.execute("UPDATE customers SET phone = ? WHERE customer_id = ?", (new_value, customer_id))
+            
+        elif choice == 4:
+            cursor.execute("UPDATE customers SET company = ? WHERE customer_id = ?", (new_value, customer_id))
+            
         else:
-            cursor.execute("Update cutomers set email = ? where customer_id = ?",(new_email, id))
-    if ch == 3:
-        new_phone = input("Enter updated phone number")
-        if not new_phone.isdigit() or len(new_phone) != 10:
-            print("Invalid phone number ") 
-            return 
-        else:
-            cursor.execute("Update customers set phone = ? where customer_id = ?",(new_phone, id))
-    if ch == 4:
-        new_company = input("Enter updated features of plan")
-        cursor.execute("Update customers set company = ? where customer_id = ?",(new_company, id))    
+            conn.close()
+            return False, "Invalid Choice!"
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+        return True, "Customer Updated Successfully!!"
+        
+    except Exception as e:
+        return False, f"Error updating customer: {e}"
 
-    print("Updated Successfully !!")
 
-def delete_customer():
-    conn = connection()
-    cursor = conn.cursor()
+def delete_customer(customer_id):
+    try:
+        conn = connection()
+        cursor = conn.cursor()
 
-    id = int(input("Enter the customer ID to be deleted"))
-    ch = input("Are you sure you want to delete ? Confirm with (Y/n)")
-    if ch == 'Y':
-        cursor.execute("Delete from customers where customer_id = ?",(id,))
-    elif ch == 'n':
-        print("Deletion Aborted")
-    
-    conn.commit()
-    conn.close()
-    print("Operation Successful")
+        cursor.execute("DELETE FROM customers WHERE customer_id = ?", (customer_id,))
+        
+        conn.commit()
+        conn.close()
+        return True, "Customer Deleted Successfully!!"
+        
+    except Exception as e:
+        return False, f"Error deleting customer: {e}"
